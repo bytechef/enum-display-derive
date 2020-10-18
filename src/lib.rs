@@ -68,9 +68,9 @@ extern crate quote;
 
 use proc_macro::TokenStream;
 
-#[proc_macro_derive(Display)]
+#[proc_macro_derive(DisplayDebug)]
 #[doc(hidden)]
-pub fn display(input: TokenStream) -> TokenStream {
+pub fn displaydebug(input: TokenStream) -> TokenStream {
     // Parse the string representation
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
@@ -79,7 +79,7 @@ pub fn display(input: TokenStream) -> TokenStream {
             let name = &ast.ident;
             impl_display(name, enum_data).into()
         }
-        _ => panic!("#[derive(Display)] works only on enums"),
+        _ => panic!("#[derive(DisplayDebug)] works only on enums"),
     }
 }
 
@@ -88,7 +88,7 @@ fn impl_display(name: &syn::Ident, data: &syn::DataEnum) -> proc_macro2::TokenSt
         .map(|variant| impl_display_for_variant(name, variant));
 
     quote! {
-        impl Display for #name {
+        impl Debug for #name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
                 match *self {
                     #(#variants)*
@@ -121,16 +121,16 @@ fn impl_display_for_variant(name: &syn::Ident, variant: &syn::Variant) -> proc_m
                 1 => {
                     quote! {
                         #name::#id(ref inner) => {
-                            ::std::fmt::Display::fmt(inner, f)
+                            ::std::fmt::Debug::fmt(inner, f)
                         }
                     }
                 }
                 _ => {
-                    panic!("#[derive(Display)] does not support tuple variants with more than one \
+                    panic!("#[derive(DisplayDebug)] does not support tuple variants with more than one \
                             fields")
                 }
             }
         }
-        _ => panic!("#[derive(Display)] works only with unit and tuple variants"),
+        _ => panic!("#[derive(DisplayDebug)] works only with unit and tuple variants"),
     }
 }
